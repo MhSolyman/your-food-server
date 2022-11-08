@@ -43,7 +43,9 @@ run().catch(error => console.log(error));
 
 
 
-
+app.get('/',(req,res)=>{
+    res.send('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+})
 
 
 app.listen(port, () => {
