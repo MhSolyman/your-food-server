@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const cors = require('cors');
 app.use(cors());
@@ -27,9 +27,25 @@ const run = async () => {
         const foodCullection = client.db('food').collection('foods');
         app.get('/food', async(req, res) => {
             const query = {};
+            const cursor= foodCullection.find(query).limit(3)
+            const food = await cursor.toArray();
+            res.send(food)
+        })
+
+        const foodCullections = client.db('food').collection('foods');
+        app.get('/food/services', async(req, res) => {
+            const query = {};
             const cursor= foodCullection.find(query)
             const food = await cursor.toArray();
             res.send(food)
+        })
+
+        app.get('/food/services/:id', async(req, res) => {
+            const id = req.params.id;
+
+            const query = { _id: ObjectId(id) };
+            const foods = await foodCullection.findOne(query)
+            res.send(foods)
         })
 
     }
