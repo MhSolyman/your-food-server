@@ -86,13 +86,23 @@ const run = async () => {
                     email: req.query.email
                 }
             }
-
             const cursor = reviewsCullectio.find(query);
             const revew = await cursor.toArray()
             res.send(revew)
 
-        }
-        )
+        } )
+
+
+
+        
+
+        app.delete('/Deletereviews/:id',async(req,res)=>{
+            const id = req.params.id;
+            const query= {_id : ObjectId(id)};
+            const result =await reviewsCullectio.deleteOne(query);
+            res.send(result)
+
+        })
 
 
 
