@@ -90,16 +90,32 @@ const run = async () => {
             const revew = await cursor.toArray()
             res.send(revew)
 
-        } )
+        })
 
 
 
-        
 
-        app.delete('/Deletereviews/:id',async(req,res)=>{
+
+
+
+        app.delete('/Deletereviews/:id', async (req, res) => {
             const id = req.params.id;
-            const query= {_id : ObjectId(id)};
-            const result =await reviewsCullectio.deleteOne(query);
+            const query = { _id: ObjectId(id) };
+            const result = await reviewsCullectio.deleteOne(query);
+            res.send(result)
+
+        })
+
+        app.get('/getrev/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await reviewsCullectio.findOne(query);
+            res.send(result)
+
+        })
+        app.patch('/editerev/:id',async(req,res)=>{
+            const {id}= req.params;
+            const result =await reviewsCullectio.updateOne({_id:ObjectId(id)},{$set:req.body})
             res.send(result)
 
         })
