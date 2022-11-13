@@ -1,6 +1,7 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-require('dotenv').config()
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const app = express();
 const cors = require('cors');
 app.use(cors());
@@ -16,7 +17,22 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
+const verfyjwt = (req, res, next) => {
+    const authHeader=req.headers.authorization;
 
+    if(!authHeader){
+        res.send(401).send({message:'un AUth accsses'})
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(err,decoded)=>{
+        if (err){
+            return res.status(401).send({message:"un AUth accsses"});
+        }
+        req.decoded=decoded;
+        next()
+    })
+
+}
 
 
 
@@ -27,6 +43,15 @@ const run = async () => {
     try {
         const foodCullection = client.db('food').collection('foods');
         const reviewsCullectio = client.db('review').collection('reviews');
+
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' })
+            res.send({ token })
+        })
+
+
+
         app.get('/food', async (req, res) => {
             const query = {};
             const cursor = foodCullection.find(query).limit(3)
@@ -78,7 +103,12 @@ const run = async () => {
         )
 
 
-        app.get('/Addreviews', async (req, res) => {
+        app.get('/Addreviews', verfyjwt, async (req, res) => {
+            const decoded = req.decoded;
+            
+            if(decoded.email !==req.query.email){
+                res.status(403).send({message:'un auth access'})
+            }
 
             let query = {};
             if (req.query.email) {
@@ -106,16 +136,16 @@ const run = async () => {
 
         })
 
-        app.get('/getrev/:id', async(req, res) => {
+        app.get('/getrev/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await reviewsCullectio.findOne(query);
             res.send(result)
 
         })
-        app.patch('/editerev/:id',async(req,res)=>{
-            const {id}= req.params;
-            const result =await reviewsCullectio.updateOne({_id:ObjectId(id)},{$set:req.body})
+        app.patch('/editerev/:id', async (req, res) => {
+            const { id } = req.params;
+            const result = await reviewsCullectio.updateOne({ _id: ObjectId(id) }, { $set: req.body })
             res.send(result)
 
         })
